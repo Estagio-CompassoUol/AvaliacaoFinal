@@ -1,0 +1,368 @@
+/*************************************************************************
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ * Copyright 2020 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ **************************************************************************/
+//isOriginatorUnifiedShellEnabled is set in unified-shell-init.js
+if ((self !== top && (window.UNIFIED_SHELL_ENABLED || isOriginatorUnifiedShellEnabled) && top.location.pathname.indexOf('/ui') === 0) || top.UNIFIED_SHELL_IN_TEST) {
+    //have to wait until everything is loaded first
+    $(document).one('foundation-contentloaded', function () {
+        if (parent.location.href.indexOf('/ui#') < 0) return; //only initialize shell for first level
+
+        const UNIFIED_SHELL_FEATURE_TOGGLE = Granite.Toggles.isEnabled("ft-cq-4297706");
+        //For view switcher between Assets Essentials and TouchUI
+        const ASSETS_ESSENTIAL_VIEW_TOGGLE = Granite.Toggles.isEnabled("ft-assets-4122");
+        //Do not do anything with unified shell disable in FT
+        if (!UNIFIED_SHELL_FEATURE_TOGGLE) return;
+
+        window.EXC_US_HMR = true;
+
+        //TODO - figure out what this is?
+        $(document).on('coral-columnview:navigate', function (e) {
+            var path = e.currentTarget.location.pathname.split(e.currentTarget.location.host)[1];
+            history.pushState({urlPath: path}, null, path);
+        });
+
+        /**
+         * Externalize path for local
+         * @param {String} path - relative path without leading /
+         * @return externalized path relative to local
+         */
+        function externalizeLocalUrl(path) {
+            //local URL from externalizer - unifiedshell.jsp
+            var externalizedUrl = Granite.HTTP.externalize('/');
+            if (externalizedUrl.indexOf('http://localhost:') === 0) {
+                externalizedUrl = 'https://localhost.corp.adobe.com:8443/' + path;
+            }
+            else {
+                externalizedUrl += (externalizedUrl.endsWith('/') ? '' : '/') + path;
+            }
+            return externalizedUrl
+        }
+
+        /**
+         * Stop Gap Notification TODO to be removed when full pulse notification implemented
+         * @param excRuntime UnifiedShell Runtime
+         */
+        function initNotification(excRuntime) {
+            function intervalCheck() {
+                const PULSE_URL = window.location.origin +
+                    '/mnt/overlay/granite/ui/content/shell/header/actions/pulse.data.json';
+                fetch(PULSE_URL).then(function(rsp){
+                    return rsp.json();
+                }).then(function(json){
+                    const total = json.total;
+                    excRuntime.pulse.setCount(parseInt(total));
+                    excRuntime.pulse.setButton({label: 'Inbox (' + total + ')', callback: () => window.location.href = '/aem/inbox'});
+                });
+            }
+            intervalCheck();
+            setInterval(intervalCheck, 5000);
+        }
+
+        function bootstrap() {
+            excRuntime = new window['exc-module-runtime'].default({});
+            //Stop-gap TODO to be removed with full pulse notification implemented
+            initNotification(excRuntime);
+
+            excRuntime.spinner = false;
+
+            //Register buttons for shell menu - For event router, look at unified-shell-aem.js
+            excRuntime.customButtons = [];
+
+            //only add preference link when it's in the page
+            if ($('coral-shell-menubar')
+                .find('coral-shell-menubar-item[data-foundation-toggleable-control-src="/mnt/overlay/granite/ui/content/shell/userproperties.html"]').length){
+                excRuntime.customButtons.push({
+                    id: 'preference',
+                    label: 'AEM Preferences',
+                    scope: 'userProfile'
+                });
+            }
+            //only add help link when there is one in the page
+            if ( $('coral-shell-menubar')
+                .find('coral-shell-menubar-item[data-foundation-toggleable-control-src="/mnt/overlay/granite/ui/content/shell/help.html"]').length) {
+                excRuntime.customButtons.push({
+                    id: 'aem_keyboard_shortcut',
+                    label: 'Keyboard Shortcuts',
+                    scope: 'helpCenterResource'
+                });
+                excRuntime.customButtons.push({
+                    id: 'about_aem',
+                    label: 'About Adobe Experience Manager',
+                    scope: 'helpCenterResource'
+                });
+            }
+
+            excRuntime.feedback = {
+                buttonLabel: 'Feedback',
+                enabled: true,
+                type: 'openFeedback'
+            };
+
+
+            if (window.UNIFIED_SHELL_IMPERSONATED) {
+                excRuntime.customButtons.push({
+                    id: 'reverttoself',
+                    label: 'Revert to self',
+                    scope: 'userProfile'
+                })
+                //Use env label to indicate impersonation
+                excRuntime.customEnvLabel = 'Impersonation Mode';
+            }
+            else {
+                excRuntime.customButtons.push({
+                    id: 'impersonate',
+                    label: 'Impersonate',
+                    scope: 'userProfile'
+                })
+                excRuntime.customEnvLabel = '';
+            }
+
+            if (ASSETS_ESSENTIAL_VIEW_TOGGLE && UnifiedShellAEM) {
+                excRuntime.customButtons.push({
+                    id: 'viewswitcher',
+                    label: 'Try Assets Essentials',
+                    scope: 'userProfile',
+                });
+                ['ready', 'configuration'].forEach(function(unifiedShellEvent){
+                    excRuntime.on(unifiedShellEvent, function(payload){
+                        UnifiedShellAEM.readyPayload = {
+                            tenant: payload.tenant,
+                            environment: payload.environment,
+                        }
+                    });
+                });
+            }
+
+            excRuntime.on('customButtonClick', ({type, value}) => {
+                if (UnifiedShellAEM) {
+                    UnifiedShellAEM.onCustomButtonClick(value);
+                }
+            });
+
+
+            if ($('#granite-omnisearch-trigger').length) {
+                excRuntime.customSearch = {
+                    enabled: true,
+                    show: false,
+                };
+                excRuntime.on('customSearch', (value) => {
+                    if ( value === true ) {
+                        $('#granite-omnisearch-trigger').click();
+                        var typeAheadInterval = setInterval(function(){
+                            //No need to set the trial limit for typehead since omnisearch must come with this field
+                            if ($('.granite-omnisearch-typeahead-input').length >= 1) {
+                                var suggestionListInterval = null;
+                                var pollingTrial = 0; //count retry for delay on suggestion list
+                                const MAX_TRIAL = 15;
+                                $('.granite-omnisearch-typeahead-input').on('keypress', function(e){
+                                    if (suggestionListInterval) {
+                                        clearInterval(suggestionListInterval);
+                                        //Have to reset to null for outer keypress
+                                        suggestionListInterval = null;
+                                        pollingTrial = 0;
+                                    }
+                                    suggestionListInterval = setInterval( function() {
+                                        pollingTrial++;
+                                        if (pollingTrial > MAX_TRIAL) {
+                                            clearInterval(suggestionListInterval);
+                                            //Have to reset to null for outer keypress
+                                            suggestionListInterval = null;
+                                            pollingTrial = 0;
+                                        }
+                                        //checking to make sure that we count link update only when the new node is populated by checking aria-label content
+                                        var ariaSuggestion = $('#granite-omnisearch-suggestions-list').length > 0 ?
+                                            $('#granite-omnisearch-suggestions-list').attr('aria-label').substring($('#granite-omnisearch-suggestions-list').attr('aria-label').indexOf(':')+1).trim() : '';
+                                        var typeAheadString = $('.granite-omnisearch-typeahead-input').val().trim();
+                                        if (($('#granite-omnisearch-suggestions-list')
+                                                    .find('[data-granite-omnisearch-typeahead-navigation-href="/crx/packmgr"]').length > 0 ||
+                                                $('#granite-omnisearch-suggestions-list')
+                                                    .find('[data-granite-omnisearch-typeahead-navigation-href="/crxde"]').length > 0 )
+                                            && typeAheadString == ariaSuggestion
+                                        ) {
+                                            //Prevent Package Manager from loading inside Shell from omnisearch suggestion
+                                            $('#granite-omnisearch-suggestions-list')
+                                                .find('[data-granite-omnisearch-typeahead-navigation-href="/crx/packmgr"]')
+                                                .on('click', function (e) {
+                                                    e.preventDefault();
+                                                    e.stopImmediatePropagation();
+                                                    window.top.location = '/crx/packmgr';
+                                                });
+                                            //Prevent CRXDE from loading inside Shell from omnisearch suggestion
+                                            $('#granite-omnisearch-suggestions-list')
+                                                .find('[data-granite-omnisearch-typeahead-navigation-href="/crx/de"]')
+                                                .on('click', function (e) {
+                                                    e.preventDefault();
+                                                    e.stopImmediatePropagation();
+                                                    window.top.location = '/crx/de'
+                                                });
+                                            clearInterval(suggestionListInterval);
+                                            //Have to reset to null for outer keypress
+                                            suggestionListInterval = null;
+                                            pollingTrial = 0;
+                                        }
+                                    }, 100);
+                                })
+                                clearInterval(typeAheadInterval);
+                                return;
+                            }
+                        }, 100);
+                    }
+                });
+            }
+            else {
+                //Disable search in the shell when there is no way to trigger omnisearch in the page
+                excRuntime.customSearch = {
+                    enabled: false,
+                    show: false,
+                };
+
+            }
+
+            excRuntime.helpCenter = {
+                resources: [
+                    {
+                        href: 'https://docs.adobe.com/content/help/en/experience-manager-cloud-service/release-notes/release-notes/release-notes-current.html',
+                        label: 'What\'s New'
+                    },
+                    {
+                        href: 'https://docs.adobe.com/content/help/en/experience-manager-cloud-service/landing/home.html',
+                        label: 'Adobe Experience Manager Documentation'
+                    },
+                    {
+                        href: 'https://helpx.adobe.com/contact/enterprise-support.ec.html#experience-manager',
+                        label: 'Customer Care'
+                    },
+                    {
+                        href: 'https://experienceleaguecommunities.adobe.com/t5/adobe-experience-manager/ct-p/adobe-experience-manager-community',
+                        label: 'Community'
+                    },
+                    {
+                        href: 'https://status.adobe.com/marketing_cloud',
+                        label: 'Adobe Experience Cloud Status'
+                    },
+                ],
+            };
+
+            excRuntime.logoutUrl = externalizeLocalUrl('system/sling/logout.html');
+
+            //TODO: change to correct favicon
+            excRuntime.favicon = 'https://www.adobe.com/favicon.ico';
+
+            excRuntime.heroClick = function () {
+                //for page without menu
+                if (!$('coral-shell-header-home.globalnav-toggle').length) {
+                    window.location.href = Granite.HTTP.externalize('/aem/start.html');
+                }
+
+                let issuedClick = false;
+                //This logic to prevent multiple firing of click events
+                if (!excRuntime._aemMenu && $('.globalnav-overlay').length === 0) {
+                    // if no menu yet and no overlay node, we want to issue the click and set menu to shown-state
+                    setTimeout( function() {
+                        excRuntime._aemMenu = true;
+                    }, 500);
+                    issuedClick = true;
+                }
+                else if (excRuntime._aemMenu && $('.globalnav-overlay').length > 0) {
+                    // if there is a menu and overlay node is there, we want to issue the click and set menu to hidden-state
+                    excRuntime._aemMenu = false;
+                    issuedClick = true;
+                }
+                else if (excRuntime._aemMenu && $('.globalnav-overlay').length === 0) {
+                    excRuntime._aemMenu = false;
+                    issuedClick = true;
+                }
+                if (issuedClick) {
+                    //trigger click in original coral shell top left icon
+                    $('coral-shell-header-home.globalnav-toggle').click();
+                    //register close in menu to set state to false
+                    //wait until the popup menu render
+                    setTimeout( function() {
+                        $('betty-titlebar-secondary').find('.globalnav-toggle').on('click', function () {
+                            excRuntime._aemMenu = false
+                        });
+                    }, 1000)
+                }
+            };
+
+            const sameAddress = (addr1, addr2) => {
+                if (addr1.origin !== addr2.origin) {
+                    return false;
+                }
+
+                if (addr1.hash !== addr2.hash) {
+                    return false;
+                }
+
+                if (addr1.pathname !== addr2.pathname) {
+                    return false;
+                }
+
+                const addr1SearchKeys = [...addr1.searchParams.keys()].sort();
+                const addr2SearchKeys = [...addr2.searchParams.keys()].sort();
+
+                if (addr1SearchKeys.join("") !== addr2SearchKeys.join("")) {
+                    return false;
+                }
+
+                const different = addr1SearchKeys.some(
+                    key => addr1.searchParams.get(key) !== addr2.searchParams.get(key)
+                );
+
+                return !different;
+            };
+
+
+            excRuntime.on('history', arg => {
+                const {type, path} = arg;
+
+                if (type !== 'external') {
+                    return;
+                }
+
+                const currentAddr = new URL(document.location.href);
+                let navAddress;
+
+                try {
+                    navAddress = new URL(path);
+                } catch (e) {
+                    navAddress = new URL(
+                        path.startsWith('/')
+                            ? currentAddr.origin + path
+                            : currentAddr.origin + '/' + path
+                    );
+                }
+
+                if (sameAddress(navAddress, currentAddr)) {
+                    return;
+                }
+
+                document.location.href = navAddress.href;
+            });
+
+            excRuntime.done();
+        }
+
+        //we're in an iframe so we need to remove header
+        if ('exc-module-runtime' in window) {
+            bootstrap();
+        } else {
+            window.EXC_MR_READY = function () {
+                return bootstrap();
+            };
+        }
+    });
+}

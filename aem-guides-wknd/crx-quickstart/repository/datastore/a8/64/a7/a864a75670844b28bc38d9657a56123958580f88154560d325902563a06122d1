@@ -1,0 +1,533 @@
+/*
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2014 Adobe Systems Incorporated
+ * All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of Adobe Systems Incorporated and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Adobe Systems Incorporated and its
+ * suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe Systems Incorporated.
+ */
+(function (window, document, Granite, $) {
+    "use strict";
+
+    var COMMAND_URL = Granite.HTTP.externalize("/bin/wcmcommand");
+    var ids = null;
+    var isBulkCopy = false;
+    var sourceParentPath = null;
+    var exceptPath = [];
+    var destText = "Paste";
+    var createDialogEl;
+    var relPasteDialog = ".cq-siteadmin-admin-pastepagedialog";
+
+    function createEl(name) {
+        return $(document.createElement(name));
+    }
+
+    function closeBrowserWarning() {
+        return Granite.I18n.get("Paste operation is in progress. Refreshing page may cause unexpected results.");
+    }
+
+    function updatePasteButton(context) {
+        context = context || document;
+        var pasteButton = $(".cq-wcm-paste-activator", context);
+        toggleButton(pasteButton);
+    }
+
+    function updateSitesPasteButton(context) {
+        context = context || document;
+        var sitesPasteButton = $(".cq-wcm-sites-paste-activator", context);
+        toggleButton(sitesPasteButton);
+    }
+
+    function toggleButton(button) {
+        if (!ids) {
+            button.attr("hidden", "hidden");
+        } else {
+            button.removeAttr("hidden");
+        }
+    }
+
+    function getDestPath(activator) {
+        var dest = activator.data("cqWcmPasteActivatorDest");
+        if (dest) {
+            return dest;
+        }
+
+        var target = activator.data("cqWcmPasteActivatorTarget");
+        if (!target) {
+            return;
+        }
+
+        var collection = $(target);
+        if (!collection.hasClass("foundation-collection")) {
+            return;
+        }
+
+        if (collection.hasClass("foundation-layout-columns")) {
+            // FIXME There is a bug in foundation-layout-columns such that the [data-foundation-collection-id] is wrong when there is no active item.
+            // So let's do a workaround temporarily here.
+
+            var columns = collection.children(".coral-ColumnView-column");
+
+            if (columns.filter(".is-active").length === 0) {
+                var first = columns.first().find(".foundation-collection-item").first();
+                if (first.length > 0) {
+                    var id = first.data("foundationCollectionItemId");
+                    var parts = id.split("/");
+                    parts.pop();
+                    return parts.join("/");
+                }
+            } else {
+                return collection.data("foundationCollectionId");
+            }
+        } else {
+            return collection.data("foundationCollectionId");
+        }
+    }
+
+    function getPasteDestination(activator) {
+        destText = "Paste Site In " + getDestPath(activator);
+        return destText;
+    }
+
+    function triggerPasteCompletionEvent(args, params) {
+        if ($.isArray(args[0])) {
+            // Multiple items pasted
+            for (var i = 0; i < args.length; i++) {
+                params[i].destPath = $(args[i][0]).find("#Message").html();
+            }
+        } else {
+            // Single item pasted
+            params[0].destPath = $(args[0]).find("#Message").html();
+        }
+
+        $(document).trigger("cq-wcm-paste-completed", [params]);
+    }
+
+    $(window).adaptTo("foundation-registry").register("foundation.collection.action.action", {
+        name: "cq.wcm.copy",
+        handler: function (name, el, config, collection, selections) {
+            ids = selections.map(function (v) {
+                return $(v).data("foundationCollectionItemId");
+            });
+
+            if (!ids.length) return;
+
+            isBulkCopy = config && config.target && config.activeSelectionCount === "bulk"
+                && collection && collection.dataset && collection.dataset.foundationSelectionsSelectallMode === "true";
+
+            if (isBulkCopy) {
+                $(collection).find(".foundation-collection-item:not(.foundation-selections-item)").each(function () {
+                    var itemPath = this.dataset.foundationCollectionItemId;
+                    if (itemPath) {
+                        exceptPath.push(itemPath);
+                    }
+                });
+                sourceParentPath = collection.dataset.foundationCollectionId;
+            }
+            updateSitesPasteButton();
+            if ( $("button.cq-siteadmin-admin-pastepagedialog.cq-wcm-sites-paste-activator",document).length !== 0) {
+                initPasteDialog();
+            }
+            updatePasteButton();
+            $(collection).adaptTo("foundation-selections").clear();
+        }
+    });
+
+    function getOutputData(source, destination, isShallow) {
+        return {
+            srcPath: source,
+            destParentPath: destination,
+            before: "",
+            shallow: isShallow
+        }
+    }
+
+    function getBulkCopyAssetPromise(activator, destParentPath) {
+        var selector = activator.hasClass("cq-damadmin-admin-pasteasset") ? "bulkassets" : "bulkpages";
+        return $.post(sourceParentPath + "." + selector + ".copy", {
+            sourceParentPath: sourceParentPath,
+            destParentPath: destParentPath,
+            exceptPath: exceptPath
+        })
+    }
+
+    function getUpdatedDestParentPath(v, destParentPath) {
+        // check if we are copying a template which is stored in /conf
+        var relativeTemplateParent = "settings/wcm/templates";
+        if (v.indexOf("/conf") === 0
+            && v.indexOf(relativeTemplateParent) >= 0
+            && destParentPath.indexOf(relativeTemplateParent) === -1) {
+            destParentPath += "/" + relativeTemplateParent;
+        }
+        return destParentPath;
+    }
+
+    function getDefaultCopyAssetPromise(source, destination, isShallow, newSiteName) {
+        return $.ajax({
+            url: COMMAND_URL,
+            type: "POST",
+            data: {
+                _charset_: "UTF-8",
+                cmd: "copyPage",
+                srcPath: source,
+                destParentPath: destination,
+                before: "",
+                destName: newSiteName,
+                shallow: isShallow
+            }
+        });
+    }
+
+    function initPasteDialog() {
+        var pasteDialog = new PasteDialog().set("pastePage", document.querySelector(relPasteDialog));
+        pasteDialog.initialize();
+    }
+
+    $(document).on("click", ".cq-wcm-paste-activator", function (e) {
+        e.preventDefault();
+        var activator = $(this);
+        return performPaste(activator, false);
+    });
+
+    function performPaste(activator, isShallowCopy, newSiteName) {
+        var destParentPath = getDestPath(activator);
+        if (!destParentPath) {
+            return;
+        }
+
+        var isShallow = isShallowCopy;
+
+        var ui = $(window).adaptTo("foundation-ui");
+        ui.wait();
+        $(window).on("beforeunload", closeBrowserWarning);
+
+        var promises = [];
+        var outputParams = [];
+
+        if (isBulkCopy && sourceParentPath && !isShallow) {
+            promises.push(getBulkCopyAssetPromise(activator, destParentPath));
+            outputParams.push(getOutputData(sourceParentPath, destParentPath, false));
+        } else {
+            ids.forEach(function (pathToCopy) {
+                var updatedDestParentPath = getUpdatedDestParentPath(pathToCopy, destParentPath);
+                promises.push(getDefaultCopyAssetPromise(pathToCopy, updatedDestParentPath, isShallow, newSiteName));
+                outputParams.push(getOutputData(pathToCopy, updatedDestParentPath, isShallow));
+            });
+        }
+
+        $.when.apply(null, promises)
+            .always(function () {
+                $(window).off("beforeunload", closeBrowserWarning);
+
+                ui.clearWait();
+            })
+            .done(function () {
+                triggerPasteCompletionEvent(arguments, outputParams);
+
+                var target = activator.data("cqWcmPasteActivatorTarget");
+                if (target) {
+                    var api = $(target).adaptTo("foundation-collection");
+                    if (api && "reload" in api) {
+                        api.reload();
+                        return;
+                    }
+                }
+
+                var contentApi = $(".foundation-content").adaptTo("foundation-content");
+                if (contentApi) {
+                    contentApi.refresh();
+                }
+
+            })
+            .fail(function (xhr) {
+                if (xhr.status === 0 || xhr.readyState === 0) {
+                    // premature reload, do nothing
+                    return;
+                }
+
+                var title = Granite.I18n.get("Error");
+                var message = Granite.I18n.getVar($(xhr.responseText).find("#Message").html());
+                ui.alert(title, message, "error");
+            });
+    }
+
+    $(document).on("foundation-contentloaded", function (e) {
+        updateSitesPasteButton(e.target);
+        updatePasteButton(e.target);
+    });
+
+    $(window).adaptTo("foundation-registry").register("foundation.collection.action.action", {
+        name: "cq.wcm.paste.shallow",
+        handler: function(name, el, config, collection, selections) {
+            var control = $(el);
+            var nesting = config.data.nesting;
+            if (nesting === "hide") {
+                var parentAPI = control.closest(".foundation-toggleable").adaptTo("foundation-toggleable");
+                if (parentAPI) {
+                    parentAPI.hide();
+                }
+            }
+            var activator = $(".cq-wcm-paste-activator");
+            if (activator.length > 0) {
+                performPaste(activator, true);
+            }
+        }
+    });
+
+    var PasteDialog = new Class({
+        pastePage: null,
+        dialog: null,
+        _ILLEGAL_FILENAME_CHARS: "%/\\:*?\"[]|\n\t\r. #{}^;+",
+
+        set: function(prop, value) {
+            this[prop] = value;
+            return this;
+        },
+
+        initialize: function() {
+            var self = this;
+            if (!self.dialog) {
+                self.dialog = self.createDialog();
+                document.body.appendChild(self.dialog);
+            }
+            Coral.commons.ready(self.pastePage, function() {
+                self.pastePage
+                    .on("click", function(event) {
+                        var parentAPI = $(self.pastePage).closest(".foundation-toggleable")
+                            .adaptTo("foundation-toggleable");
+                        if (parentAPI) {
+                            parentAPI.hide();
+                        }
+                        self._cleanDialog();
+                        self.dialog.show();
+                    });
+            });
+        },
+
+        createDialog: function() {
+            var self = this;
+            var activator = $(relPasteDialog);
+            var dialogExists = true;
+            if (!createDialogEl) {
+                dialogExists = false;
+                createDialogEl = new Coral.Dialog().set( {
+                    id: "pastePageDialog",
+                    header: {
+                        innerHTML: getPasteDestination(activator)
+                    },
+                    closable: "on"
+                });
+            }
+            var dialog = createDialogEl;
+            var content = dialog.content;
+            var newSiteName;
+            var contentForm;
+            if (!dialogExists) {
+                contentForm = content.appendChild(document.createElement("form"));
+                contentForm.className += " coral-Form--vertical";
+                if (ids.length === 1) {
+                    // New Site Name
+                    contentForm.appendChild(function() {
+                        var fieldDiv = document.createElement("div");
+                        var titleLabel = document.createElement("label");
+                        fieldDiv.className += " coral-Form-fieldwrapper";
+                        titleLabel.innerHTML = Granite.I18n.get("New Site Name *");
+                        titleLabel.className += " coral-Form-fieldlabel";
+                        var input = new Coral.Textfield().set({
+                            name: ":name"
+                        }).on("input", function(event) {
+                            newSiteName = $(this).get(0);
+                            self._validateAndAddTooltip(newSiteName.value);
+                        }).on("keypress", function(event) {
+                            var charCode = event.which || event.keyCode;
+                            if (charCode === 13) {
+                                event.preventDefault();
+                                self._submit();
+                            }
+                        });
+                        input.className += " coral-Form-field";
+                        input.placeholder = ids[0].substring(ids[0].lastIndexOf("/") + 1);
+                        dialog.nameInput = input;
+                        fieldDiv.appendChild(titleLabel);
+                        fieldDiv.appendChild(input);
+                        return fieldDiv;
+                    }());
+                }
+
+                // Copied From
+                contentForm.appendChild(function() {
+                    var fieldDiv = document.createElement("div");
+                    var titleLabel = document.createElement("label");
+                    fieldDiv.className += " coral-Form-fieldwrapper";
+                    titleLabel.innerHTML = Granite.I18n.get("Copied From");
+                    titleLabel.className += " coral-Form-fieldlabel";
+                    fieldDiv.appendChild(titleLabel);
+                    var valueCopiedFrom = createEl("P").appendTo(fieldDiv);
+                    var copiedFrom = ids[0];
+                    copiedFrom =  copiedFrom.substr(0, copiedFrom.lastIndexOf("/"));
+                    valueCopiedFrom.text(copiedFrom);
+                    return fieldDiv;
+                }());
+
+                //Pasting Files
+                contentForm.appendChild(function() {
+                    var fieldDiv = document.createElement("div");
+                    var titleLabel = document.createElement("label");
+                    fieldDiv.className += " coral-Form-fieldwrapper";
+                    titleLabel.innerHTML = Granite.I18n.get("Pasting Files");
+                    titleLabel.className += " coral-Form-fieldlabel";
+                    fieldDiv.appendChild(titleLabel);
+                    var list = [];
+                    var maxCount = Math.min(ids.length, 12);
+                    for (var i = 0, ln = maxCount; i < ln; i++) {
+                        var fileName =ids[i].substring(ids[i].lastIndexOf("/") + 1);
+                        list.push(createEl("span").text(fileName).prop("outerHTML"));
+                    }
+                    if (ids.length > maxCount) {
+                        list.push("&#8230;"); // &#8230; is ellipsis
+                    }
+                    createEl("p").html(list.join("<br>")).appendTo(fieldDiv);
+                    return fieldDiv;
+                }());
+
+                var shallowPaste = new Coral.Checkbox().on("change", function(event) {
+                    dialog.shallowPaste = this.checked;
+                });
+                shallowPaste.label.innerHTML = Granite.I18n.get("Paste Without Children");
+                $(shallowPaste).addClass("shallow-paste-checkbox");
+                contentForm.appendChild(shallowPaste);
+
+                var footer = dialog.footer;
+                var cancel = new Coral.Button();
+                cancel.label.textContent = Granite.I18n.get("Cancel");
+                footer.appendChild(cancel).on("click", function() {
+                    self._cleanDialog();
+                    dialog.hide();
+                });
+
+                var submitButton = new Coral.Button().set({
+                    variant: "primary"
+                }).on("click", function() {
+                    self._submit();
+                });
+                submitButton.label.textContent = Granite.I18n.get("Paste");
+
+                footer.appendChild(submitButton);
+                dialog.shallowPaste = false;
+            }
+            return dialog;
+        },
+
+        _validateAndAddTooltip: function(enteredText) {
+            var self = this;
+            // Remove the stale tooltips if any
+            Array.prototype.slice.call(self.dialog.nameInput.parentElement.getElementsByClassName("error-info-icon"))
+                .forEach(function(item) {
+                    item.remove();
+                });
+            // Do validation and add tooltip if required
+            if (self._hasRestrictedChar(enteredText)) {
+                var errorIcon = new Coral.Icon().set({
+                    id: "new-site-name-textfield-fielderror",
+                    icon: "infoCircle",
+                    size: "S"
+                });
+                errorIcon.className += " coral-Form-fieldinfo error-info-icon";
+                self.dialog.nameInput.parentElement.appendChild(errorIcon);
+
+                var errorTooltip = new Coral.Tooltip().set({
+                    content: {
+                        innerHTML: Granite.I18n.get("The name contained {0}. These characters are not allowed and were replaced by {1}", // eslint-disable-line max-len
+                            [ self._getInvalidCharSet(), "-" ])
+                    },
+                    variant: "inspect",
+                    target: "#new-site-name-textfield-fielderror",
+                    placement: "left",
+                    id: "new-site-name-textfield-fielderror-tooltip"
+                });
+                self.dialog.nameInput.parentElement.appendChild(errorTooltip);
+                var validValue = self._replaceRestrictedCodes(enteredText).replace(/ /g, "-");
+                self.dialog.nameInput.value = validValue;
+            } else {
+                self.dialog.nameInput.value = enteredText.replace(/ /g, "-");
+            }
+        },
+
+        _getInvalidCharSet: function() {
+            var self = this;
+            return self._ILLEGAL_FILENAME_CHARS.toString().replace(/,/g, " ");
+        },
+
+        _cleanDialog: function() {
+            var self = this;
+            $.each(self.dialog.getElementsByTagName("input"), function(cnt, input) {
+                if (input.type === "text") {
+                    input.value = "";
+                } else if (input.type === "checkbox") {
+                    input.checked = false;
+                }
+            });
+            Array.prototype.slice.call(self.dialog.getElementsByClassName("error-info-icon")).forEach(function(item) {
+                item.remove();
+            });
+            self.dialog.shallowPaste = false;
+
+        },
+
+        _isRestricted: function(code) {
+            var self = this;
+            var charVal = String.fromCharCode(code);
+            if (self._ILLEGAL_FILENAME_CHARS.indexOf(charVal) > -1) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+
+        _hasRestrictedChar: function(textValue) {
+            var self = this;
+            for (var i = 0, ln = textValue.length; i < ln; i++) {
+                if (self._isRestricted(textValue.charCodeAt(i))) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        _replaceRestrictedCodes: function(name) {
+            var self = this;
+            var jcrValidName = "";
+            for (var i = 0, ln = name.length; i < ln; i++) {
+                if (self._isRestricted(name.charCodeAt(i))) {
+                    jcrValidName += "-";
+                } else {
+                    jcrValidName += name[i];
+                }
+            }
+            return jcrValidName;
+        },
+
+        _submit: function() {
+            var self = this;
+            var activator = $(relPasteDialog);
+            if (ids.length ===1) {
+                performPaste(activator, self.dialog.shallowPaste, self.dialog.nameInput.value);}
+            else {
+                performPaste(activator, self.dialog.shallowPaste);
+            }
+            self._cleanDialog();
+            self.dialog.hide();
+        },
+    });
+
+    $(document).on("click", ".cq-siteadmin-admin-pastepagedialog", initPasteDialog);
+
+})(window, document, Granite, Granite.$);
