@@ -1,3 +1,4 @@
+com\adobe\aem\guides\wknd\core\service\ProdutoServiceImpl$2.class
 com\adobe\aem\guides\wknd\core\schedulers\SimpleScheduledTask$Config.class
 com\adobe\aem\guides\wknd\core\DAO\ProdutoDao.class
 com\adobe\aem\guides\wknd\core\listeners\package-info.class
@@ -17,6 +18,7 @@ com\adobe\aem\guides\wknd\core\DAO\ProdutoDaoImpl.class
 com\adobe\aem\guides\wknd\core\service\DatabaseServiceImpl.class
 com\adobe\aem\guides\wknd\core\DAO\ClienteDao.class
 com\adobe\aem\guides\wknd\core\servlets\SimpleServlet.class
+com\adobe\aem\guides\wknd\core\filters\FilterLogin.class
 com\adobe\aem\guides\wknd\core\listeners\SimpleResourceListener.class
 com\adobe\aem\guides\wknd\core\filters\package-info.class
 com\adobe\aem\guides\wknd\core\models\Produto.class

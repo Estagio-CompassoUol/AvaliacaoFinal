@@ -62,20 +62,33 @@ public class ProdutoServiceImpl implements ProdutoService {
     @Override
     public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
         try {
-            String id = req.getParameter("id");
-            if (id!=null & !(id.isEmpty()) & !(id.isBlank())){
-                int idGet = Integer.parseInt(id);
+            String idReq = req.getParameter("id");
+            String palavraChave = req.getParameter("pk");
+            String categor = req.getParameter("categ");
+            String orderByPreco = req.getParameter("orderPreco");
+
+            if (idReq != null){
+                int idGet = Integer.parseInt(idReq);
                 String json = gson.toJson(produtoDao.getFiltroId(idGet));
-//                if(json!=null || json.isEmpty()){
-                    resp.setContentType("aplication/json");
-                    resp.getWriter().write(json);
-//                }else{
-                    resp.setContentType("aplication/json");
-                    resp.getWriter().write("parametro invalido");
-//                }
-//            }else if(id.isEmpty() | id.isBlank()) {
-//                resp.setContentType("aplication/json");
-//                resp.getWriter().write("parametro invalido");
+                resp.setContentType("aplication/json");
+                resp.getWriter().write(json);
+            } else if (palavraChave!=null) {
+                String json = gson.toJson(produtoDao.getFiltroWordKey(palavraChave));
+                resp.setContentType("aplication/json");
+                resp.getWriter().write(json);
+            }else if (orderByPreco!=null) {
+                String json="";
+                if (orderByPreco.equalsIgnoreCase("menor")) {
+                    json = gson.toJson(produtoDao.getFiltroMenorPreco());
+                }else if (orderByPreco.equalsIgnoreCase("maior")) {
+                    json = gson.toJson(produtoDao.getFiltroMaiorPreco());
+                }
+                resp.setContentType("aplication/json");
+                resp.getWriter().write(json);
+            }else if (categor!=null){
+                String json = gson.toJson(produtoDao.getFiltroCategoria(categor));
+                resp.setContentType("aplication/json");
+                resp.getWriter().write(json);
             } else{
                 List<Produto> list = produtoDao.getProdutos();
                 String json = gson.toJson(list);
@@ -95,9 +108,14 @@ public class ProdutoServiceImpl implements ProdutoService {
     @Override
     public void doPut(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
         try{
+            TypeToken tt = new TypeToken<List<Produto>>() {
+            };
             String jsonAtual = IOUtils.toString(req.getReader());
-            Produto produto = gson.fromJson(jsonAtual, Produto.class);
-            produtoDao.update(produto);
+            List<Produto> listProduto = gson.fromJson(jsonAtual, tt.getType());
+            for (Produto produto:listProduto) {
+                produtoDao.update(produto);
+            }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -15,9 +15,12 @@ public interface ProdutoDao {
 
     Produto getFiltroId(int idGet);
 
-    List<Produto> getFiltroPreco();
+    List<Produto> getFiltroMenorPreco();
+    List<Produto> getFiltroMaiorPreco();
 
     List<Produto> getFiltroCategoria(String categoria);
 
-    List<Produto> getFiltroWordKey();
+    List<Produto> getFiltroWordKey(String word);
+
+
 }

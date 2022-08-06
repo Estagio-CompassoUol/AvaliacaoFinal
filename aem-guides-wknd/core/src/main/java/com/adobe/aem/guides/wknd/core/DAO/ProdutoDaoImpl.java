@@ -62,8 +62,7 @@ public class ProdutoDaoImpl implements ProdutoDao {
            String sql = "DELETE FROM produtos WHERE ID = ?";
            PreparedStatement pstm = connection.prepareStatement(sql);
            pstm.setInt(1,id);
-
-           if (!pstm.execute()) throw new RuntimeException("Não foi possível deletar produto");
+           pstm.execute();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage()+"Não foi possível deletar produto");
         }
@@ -108,10 +107,32 @@ public class ProdutoDaoImpl implements ProdutoDao {
     }
 
     @Override
-    public List<Produto> getFiltroPreco() {
+    public List<Produto> getFiltroMenorPreco() {
         List<Produto> produtos = new ArrayList<>();
         try(Connection connection= databaseService.getConnections()){
-            String sql="SELECT ID,NOME,DESCRICAO,PRECO,QUANTIDADE FROM produtos ORDER BY PRECO";
+            String sql="SELECT ID, NOME,CATEGORIA,PRECO FROM produtos ORDER BY PRECO ASC";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            while (result.next()){
+                int id = result.getInt("ID");
+                String nome=result.getString("NOME");
+                String categoria=result.getString("CATEGORIA");
+                double preco=result.getDouble("PRECO");
+                produtos.add(new Produto(id,nome,categoria,preco));
+            }
+            return produtos;
+        } catch (Exception e) {
+            e.getMessage();
+            return null;
+        }
+    }
+
+    @Override
+    public List<Produto> getFiltroMaiorPreco() {
+        List<Produto> produtos = new ArrayList<>();
+        try(Connection connection= databaseService.getConnections()){
+            String sql="SELECT ID, NOME,CATEGORIA,PRECO FROM produtos ORDER BY PRECO DESC";
             PreparedStatement pstm = connection.prepareStatement(sql);
             pstm.execute();
             ResultSet result = pstm.getResultSet();
@@ -131,9 +152,9 @@ public class ProdutoDaoImpl implements ProdutoDao {
 
     @Override
     public List<Produto> getFiltroCategoria(String categoria) {
-        List<Produto> produtosByCat = null;
+        List<Produto> produtosByCat = new ArrayList<>();
         try(Connection connection= databaseService.getConnections()){
-            String sql="SELECT ID,NOME,DESCRICAO,PRECO,QUANTIDADE FROM produtos WHERE CATEGORIA=?";
+            String sql="SELECT ID, NOME,CATEGORIA,PRECO FROM produtos WHERE CATEGORIA=?";
             PreparedStatement pstm = connection.prepareStatement(sql);
             pstm.setString(1,categoria);
             pstm.execute();
@@ -153,8 +174,28 @@ public class ProdutoDaoImpl implements ProdutoDao {
     }
 
     @Override
-    public List<Produto> getFiltroWordKey() {
-        return null;
+    public List<Produto> getFiltroWordKey(String word) {
+        List<Produto> produtosByCat = new ArrayList<>();
+        try(Connection connection= databaseService.getConnections()){
+            String sql ="SELECT ID,NOME,CATEGORIA,PRECO FROM produtos WHERE NOME LIKE ?";
+            String palavraChave= "%"+word+"%";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1,palavraChave);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            while (result.next()){
+                int id = result.getInt("ID");
+                String nome=result.getString("NOME");
+                String categoriaR=result.getString("CATEGORIA");
+                double preco=result.getDouble("PRECO");
+                produtosByCat.add(new Produto(id,nome,categoriaR,preco));
+            }
+            return produtosByCat;
+        } catch (Exception e) {
+            e.getMessage();
+            return null;
+        }
+
     }
 
 }
