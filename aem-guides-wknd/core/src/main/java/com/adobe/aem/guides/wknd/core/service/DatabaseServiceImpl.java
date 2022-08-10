@@ -1,5 +1,6 @@
 package com.adobe.aem.guides.wknd.core.service;
 
+import com.adobe.aem.guides.wknd.core.interfaces.DatabaseService;
 import com.day.commons.datasource.poolservice.DataSourcePool;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -17,7 +18,7 @@ public class DatabaseServiceImpl implements DatabaseService {
     public Connection getConnections() {
         Connection connection=null;
         try{
-            DataSource dataSource = (DataSource) dataSourcePool.getDataSource("aem_avaliacaofinal");
+            DataSource dataSource = (DataSource) dataSourcePool.getDataSource("aemavaliacaofinal");
             connection=dataSource.getConnection();
 
         } catch (Exception e) {

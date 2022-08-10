@@ -3,7 +3,7 @@
 <properties>
 <comment>WKND Sites Project - All</comment>
 <entry key="allowIndexDefinitions">false</entry>
-<entry key="created">2022-08-05T18:23:15.950Z</entry>
+<entry key="created">2022-08-09T21:09:25.343Z</entry>
 <entry key="groupId">com.adobe.aem.guides</entry>
 <entry key="name">aem-guides-wknd.all</entry>
 <entry key="description">All content package for WKND Sites Project</entry>

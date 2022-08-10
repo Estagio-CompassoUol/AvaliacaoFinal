@@ -1,6 +1,6 @@
 package com.adobe.aem.guides.wknd.core.servlets;
 
-import com.adobe.aem.guides.wknd.core.service.ProdutoService;
+import com.adobe.aem.guides.wknd.core.interfaces.ProdutoService;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HttpConstants;
@@ -9,9 +9,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-
-import java.io.IOException;
 
 import static org.apache.sling.api.servlets.ServletResolverConstants.*;
 
@@ -29,24 +26,23 @@ public class ProdutoServlet extends SlingAllMethodsServlet {
     @Reference
     private ProdutoService produtoService;
 
-
     @Override
-    protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)  {
         produtoService.doGet(request,response);
     }
 
     @Override
-    protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws IOException, ServletException {
+    protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response) {
         produtoService.doPost(request,response);
     }
 
     @Override
-    protected void doDelete(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws ServletException, IOException {
+    protected void doDelete(final SlingHttpServletRequest request, final SlingHttpServletResponse response) {
         produtoService.doDelete(request, response);
     }
 
     @Override
-    protected void doPut(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws ServletException, IOException {
+    protected void doPut(final SlingHttpServletRequest request, final SlingHttpServletResponse response){
         produtoService.doPut(request, response);
     }
 }

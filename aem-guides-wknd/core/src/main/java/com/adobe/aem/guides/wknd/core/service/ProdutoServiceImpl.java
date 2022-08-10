@@ -1,7 +1,7 @@
 package com.adobe.aem.guides.wknd.core.service;
 
-import com.adobe.aem.guides.wknd.core.DAO.ProdutoDao;
-import com.adobe.aem.guides.wknd.core.models.MsnErro;
+import com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao;
+import com.adobe.aem.guides.wknd.core.interfaces.ProdutoService;
 import com.adobe.aem.guides.wknd.core.models.Produto;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -17,6 +17,7 @@ import java.util.List;
 
 @Component(immediate = true,service = ProdutoService.class)
 public class ProdutoServiceImpl implements ProdutoService {
+
     Gson gson = new Gson();
     @Reference
     private ProdutoDao produtoDao;
@@ -29,20 +30,15 @@ public class ProdutoServiceImpl implements ProdutoService {
             String jsonStr = IOUtils.toString(req.getReader());
             List<Produto> listaproduto = gson.fromJson(jsonStr, tt.getType());
             for (Produto produto:listaproduto) {
-                int idteste = produto.getId();
-                String nometeste = produto.getNome();
-                String categoriateste = produto.getCategoria();
-                System.out.println(idteste+" "+nometeste+" "+categoriateste);
-
                 produtoDao.setSalvar(produto);
             }
             resp.setContentType("aplication/json");
-            resp.getWriter().write("Produto(s) Cadastrado");
+            resp.getWriter().write(msgJson("Produto(s) Cadastrado"));
         } catch (IOException ex) {
             try {
                 resp.setContentType("aplication/json");
-                MsnErro msnErro = new MsnErro(ex.getMessage()," Conteudo vazio");
-                resp.getWriter().write(String.valueOf(msnErro));
+                String msnErr = msgErroJson (ex.getMessage()," Conteudo vazio");
+                resp.getWriter().write(String.valueOf(msnErr));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -50,8 +46,8 @@ public class ProdutoServiceImpl implements ProdutoService {
         }catch (Exception e){
             try {
                 resp.setContentType("aplication/json");
-                MsnErro msnErro = new MsnErro(e.getMessage()," Conteudo nao e um json válido");
-                resp.getWriter().write(String.valueOf(msnErro));
+               String msnErr = msgErroJson(e.getMessage()," Conteudo nao e um json válido");
+                resp.getWriter().write(String.valueOf(msnErr));
 
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
@@ -125,16 +121,37 @@ public class ProdutoServiceImpl implements ProdutoService {
     public void doDelete(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
         try{
             String id = req.getParameter("id");
-            int idDel = Integer.parseInt(id);
-            produtoDao.deletar(idDel);
-            resp.getWriter().write("Produto deletado");
+            if (id !=null | !id.isEmpty()){
+                int idDel = Integer.parseInt(id);
+                produtoDao.deletar(idDel);
+                resp.getWriter().write(msgJson("Produto deletado"));
+            }else{
+                TypeToken tt = new TypeToken<List<Produto>>() {
+                };
+                String jsonAtual = IOUtils.toString(req.getReader());
+                List<Produto> listProduto = gson.fromJson(jsonAtual, tt.getType());
+                for (Produto produto:listProduto) {
+                    produtoDao.deletar(produto.getId());
+                }
+                resp.getWriter().write(msgJson("Produtos deletados com sucesso"));
+            }
+
         } catch (Exception e) {
             try {
-                resp.getWriter().write("Ocorreu um erro, produto nao pode ser deletado");
+                resp.getWriter().write(msgErroJson(e.getMessage(), "Ocorreu um erro, produto nao pode ser deletado"));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         }
+    }
+    public String msgErroJson(String msnErro, String erro) {
+        String json = gson.toJson(msnErro+" "+ erro);
+        return json;
+    }
+
+    public String msgJson(String msn) {
+        String json = gson.toJson(msn);
+        return json;
     }
 
 }

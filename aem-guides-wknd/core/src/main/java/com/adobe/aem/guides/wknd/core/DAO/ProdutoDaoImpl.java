@@ -1,7 +1,8 @@
 package com.adobe.aem.guides.wknd.core.DAO;
 
+import com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao;
 import com.adobe.aem.guides.wknd.core.models.Produto;
-import com.adobe.aem.guides.wknd.core.service.DatabaseService;
+import com.adobe.aem.guides.wknd.core.interfaces.DatabaseService;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -31,8 +32,6 @@ public class ProdutoDaoImpl implements ProdutoDao {
                         String nome=result.getString("NOME");
                         String categoria=result.getString("CATEGORIA");
                         double preco=result.getDouble("PRECO");
-
-
                         listaProdutos.add(new Produto(id,nome,categoria,preco));
                     }
             return listaProdutos;
