@@ -30,9 +30,9 @@ com\adobe\aem\guides\wknd\core\interfaces\ClienteService.class
 com\adobe\aem\guides\wknd\core\servlets\SimpleServlet.class
 com\adobe\aem\guides\wknd\core\filters\FilterLogin.class
 com\adobe\aem\guides\wknd\core\models\NotaFiscal.class
-com\adobe\aem\guides\wknd\core\service\NFiscalServiceImpl$1.class
 com\adobe\aem\guides\wknd\core\listeners\SimpleResourceListener.class
 com\adobe\aem\guides\wknd\core\interfaces\NotaFiscalService.class
+com\adobe\aem\guides\wknd\core\service\ClienteServiceImpl$2.class
 com\adobe\aem\guides\wknd\core\service\NFiscalServiceImpl.class
 com\adobe\aem\guides\wknd\core\filters\package-info.class
 com\adobe\aem\guides\wknd\core\servlets\ClienteServlet.class

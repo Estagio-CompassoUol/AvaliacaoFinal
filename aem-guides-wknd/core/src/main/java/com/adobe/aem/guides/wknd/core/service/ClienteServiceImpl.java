@@ -2,6 +2,7 @@ package com.adobe.aem.guides.wknd.core.service;
 
 import com.adobe.aem.guides.wknd.core.interfaces.ClienteDao;
 import com.adobe.aem.guides.wknd.core.interfaces.ClienteService;
+import com.adobe.aem.guides.wknd.core.interfaces.MsgErroService;
 import com.adobe.aem.guides.wknd.core.models.Cliente;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,6 +24,9 @@ public class ClienteServiceImpl implements ClienteService{
     @Reference
     ClienteDao clienteDao;
 
+    @Reference
+    MsgErroService msgErroService;
+
     @Override
     public void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
         List<Cliente> listaCliente = new ArrayList<>();
@@ -39,7 +43,6 @@ public class ClienteServiceImpl implements ClienteService{
                    resp.setContentType("aplication/json");
                    resp.getWriter().write(" - "+cliente.getNome() + " ja existe");
                }
-
            }
            resp.setContentType("aplication/json");
            resp.getWriter().write("Produto(s) Cadastrado");
@@ -58,7 +61,6 @@ public class ClienteServiceImpl implements ClienteService{
                throw new RuntimeException(ex);
            }
        }
-
     }
 
     @Override
@@ -95,21 +97,20 @@ public class ClienteServiceImpl implements ClienteService{
     public void doDelete(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
         try{
             String id = req.getParameter("id");
-//            if (id !=null | !id.isEmpty()){
+            if (id !=null){
                 int idDel = Integer.parseInt(id);
                 clienteDao.deletar(idDel);
-
                 resp.getWriter().write("Produto deletado");
-//            }else{
-//                TypeToken tt = new TypeToken<List<Produto>>() {
-//                };
-//                String jsonAtual = IOUtils.toString(req.getReader());
-//                List<Produto> listProduto = gson.fromJson(jsonAtual, tt.getType());
-//                for (Produto produto:listProduto) {
-//                    clienteDao.deletar(produto.getId());
-//                }
-//                resp.getWriter().write(msgErroService.msgJson("Produtos deletados com sucesso"));
-//            }
+            }else{
+                TypeToken tt = new TypeToken<List<Cliente>>() {
+                };
+                String jsonAtual = IOUtils.toString(req.getReader());
+                List<Cliente> listCliente = gson.fromJson(jsonAtual, tt.getType());
+                for (Cliente cliente:listCliente) {
+                    clienteDao.deletar(cliente.getId());
+                }
+                resp.getWriter().write(msgErroService.msgJson("Produtos deletados com sucesso"));
+            }
 
         } catch (Exception e) {
             try {

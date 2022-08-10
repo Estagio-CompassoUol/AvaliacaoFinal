@@ -39,7 +39,14 @@ public class NFiscalDaoImpl implements NFiscaisDao {
 
     @Override
     public void deletarNF(long numero) {
-
+        try(Connection connection= databaseService.getConnections()){
+            String sql = "DELETE FROM nfiscais WHERE NUMERO= ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setLong(1,numero);
+            pstm.execute();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage()+"Não foi possível deletar produto");
+        }
     }
 
     @Override
@@ -65,6 +72,19 @@ public class NFiscalDaoImpl implements NFiscaisDao {
             }
             listaNotas.add(new NotaFiscal(numeroR,idCliente,listProd));
             return listaNotas;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage()+ " Erro ao listar Nota Fiscal");
+        }
+    }
+    public boolean existe(long numero){
+        try(Connection connection= databaseService.getConnections()){
+            String sql="SELECT NUMERO FROM nfiscais WHERE NUMERO = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setLong(1,numero);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            if (result.next()) return true;
+            return false;
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage()+ " Erro ao listar Nota Fiscal");
         }

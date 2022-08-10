@@ -4,5 +4,6 @@
     <provide interface="com.adobe.aem.guides.wknd.core.interfaces.ClienteService"/>
   </service>
   <reference name="clienteDao" interface="com.adobe.aem.guides.wknd.core.interfaces.ClienteDao" field="clienteDao"/>
+  <reference name="msgErroService" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgErroService" field="msgErroService"/>
   <implementation class="com.adobe.aem.guides.wknd.core.service.ClienteServiceImpl"/>
 </scr:component>

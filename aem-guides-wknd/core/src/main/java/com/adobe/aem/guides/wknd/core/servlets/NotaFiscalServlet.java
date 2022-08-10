@@ -43,6 +43,6 @@ public class NotaFiscalServlet extends SlingAllMethodsServlet {
 
     @Override
     protected void doDelete(final SlingHttpServletRequest request, final SlingHttpServletResponse response) throws ServletException, IOException {
-
+        notaFiscalService.doDelete(request, response);
     }
 }

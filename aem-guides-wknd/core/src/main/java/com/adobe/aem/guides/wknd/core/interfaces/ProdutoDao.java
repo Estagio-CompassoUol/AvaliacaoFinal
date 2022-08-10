@@ -20,7 +20,8 @@ public interface ProdutoDao {
 
     List<Produto> getFiltroCategoria(String categoria);
 
-    List<Produto> getFiltroWordKey(String word);
+    List<Produto> getFiltroPalavraChave(String palavra);
+    boolean existe(String nome);
 
 
 }

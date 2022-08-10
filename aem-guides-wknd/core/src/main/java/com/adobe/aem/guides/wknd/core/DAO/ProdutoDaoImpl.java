@@ -173,11 +173,11 @@ public class ProdutoDaoImpl implements ProdutoDao {
     }
 
     @Override
-    public List<Produto> getFiltroWordKey(String word) {
+    public List<Produto> getFiltroPalavraChave(String palavra) {
         List<Produto> produtosByCat = new ArrayList<>();
         try(Connection connection= databaseService.getConnections()){
             String sql ="SELECT ID,NOME,CATEGORIA,PRECO FROM produtos WHERE NOME LIKE ?";
-            String palavraChave= "%"+word+"%";
+            String palavraChave= "%"+palavra+"%";
             PreparedStatement pstm = connection.prepareStatement(sql);
             pstm.setString(1,palavraChave);
             pstm.execute();
@@ -194,7 +194,19 @@ public class ProdutoDaoImpl implements ProdutoDao {
             e.getMessage();
             return null;
         }
-
     }
-
+    @Override
+    public boolean existe(String nome){
+        try(Connection connection= databaseService.getConnections()){
+            String sql="SELECT nome FROM produtos WHERE nome LIKE ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1,nome);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            if (result.next()) return true;
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage()+ " Erro ao listar Nota Fiscal");
+        }
+    }
 }
