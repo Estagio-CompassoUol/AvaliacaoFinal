@@ -54,11 +54,11 @@ public class NFiscalServiceImpl implements NotaFiscalService {
     @Override
     public void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) {
        try {
-           TypeToken tt = new TypeToken<List<NotaFiscal>>() {
-           };
+//           TypeToken tt = new TypeToken<List<NotaFiscal>>() {
+//           };
            String jsonStr = IOUtils.toString(request.getReader());
 //           response.getWriter().write(jsonStr);
-           NotaFiscal notaFiscal = gson.fromJson(jsonStr, tt.getType());
+           NotaFiscal notaFiscal = gson.fromJson(jsonStr, NotaFiscal.class);
            nFiscaisDao.salvarNF(notaFiscal);
        } catch (IOException e) {
            throw new RuntimeException(e);
