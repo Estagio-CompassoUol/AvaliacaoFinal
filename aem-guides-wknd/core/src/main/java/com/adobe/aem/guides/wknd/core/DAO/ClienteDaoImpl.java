@@ -111,7 +111,6 @@ public class ClienteDaoImpl implements ClienteDao {
             pstm.execute();
             ResultSet result = pstm.getResultSet();
             if (result.next()) {
-//                client = new Cliente(result.getString("NOME"), result.getString("EMAIL"));
                 return true;
             }else
             return false;

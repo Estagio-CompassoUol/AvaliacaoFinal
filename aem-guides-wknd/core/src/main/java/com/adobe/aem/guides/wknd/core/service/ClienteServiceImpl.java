@@ -2,7 +2,7 @@ package com.adobe.aem.guides.wknd.core.service;
 
 import com.adobe.aem.guides.wknd.core.interfaces.ClienteDao;
 import com.adobe.aem.guides.wknd.core.interfaces.ClienteService;
-import com.adobe.aem.guides.wknd.core.interfaces.MsgErroService;
+import com.adobe.aem.guides.wknd.core.interfaces.MsgService;
 import com.adobe.aem.guides.wknd.core.models.Cliente;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -12,6 +12,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +26,15 @@ public class ClienteServiceImpl implements ClienteService{
     ClienteDao clienteDao;
 
     @Reference
-    MsgErroService msgErroService;
+    MsgService msgService;
 
     @Override
     public void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("aplication/json");
+
         List<Cliente> listaCliente = new ArrayList<>();
+        int cont=0;
        try{
            TypeToken tt = new TypeToken<List<Cliente>>() {
            };
@@ -40,23 +45,24 @@ public class ClienteServiceImpl implements ClienteService{
                if(exis==false) {
                    clienteDao.setSalvar(cliente);
                }else{
-                   resp.setContentType("aplication/json");
-                   resp.getWriter().write(" - "+cliente.getNome() + " ja existe");
+                   resp.getWriter().write(msgService.msgJson(cliente.getNome() + " ja existe"));
+                   cont++;
                }
            }
-           resp.setContentType("aplication/json");
-           resp.getWriter().write("Produto(s) Cadastrado");
-       } catch (IOException e) {
+           if (cont!= listaCliente.size()) {
+               resp.getWriter().write(msgService.msgJson("Cliente(s) Cadastrado"));
+           }
+       }catch (IOException e) {
            try {
-               resp.setContentType("aplication/json");
-               resp.getWriter().write(e.getMessage()+ " Erro ao salvar cliente no banco de dados");
+               resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+               resp.getWriter().write(msgService.msgJson( "Dados obtidos não é um conteudo válido"));
            } catch (IOException ex) {
                throw new RuntimeException(ex);
            }
        }catch (Exception e){
            try {
-               resp.setContentType("aplication/json");
-               resp.getWriter().write(e.getMessage()+ " Erro ao salvar cliente no banco de dados");
+               resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+               resp.getWriter().write( msgService.msgJson("Dados incorreto, Erro ao salvar cliente no banco de dados"));
            } catch (IOException ex) {
                throw new RuntimeException(ex);
            }
@@ -65,7 +71,9 @@ public class ClienteServiceImpl implements ClienteService{
 
     @Override
     public void doGet(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
-                 String json="";
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("aplication/json");
+        String json="";
         try {
             String idReq = req.getParameter("id");
             if (idReq != null){
@@ -76,16 +84,31 @@ public class ClienteServiceImpl implements ClienteService{
                 List<Cliente> list = clienteDao.getClientes();
                 json = gson.toJson(list);
             }
-            resp.setContentType("aplication/json");
             resp.getWriter().write(json);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }catch (NumberFormatException nex){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try {
+                resp.getWriter().write(msgService.msgJson ("Parâmetro incorreto"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }catch (Exception e){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try {
+                resp.getWriter().write(msgService.msgDuploJson (e.getMessage(), "Produtos não localizados ou inexistentes"));
+            } catch (IOException ie) {
+                throw new RuntimeException(ie);
+            }
         }
     }
 
     @Override
     public void doPut(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("aplication/json");
         try {
             resp.getWriter().write("Put Service funcionando");
         } catch (IOException e) {
@@ -95,26 +118,39 @@ public class ClienteServiceImpl implements ClienteService{
 
     @Override
     public void doDelete(SlingHttpServletRequest req, SlingHttpServletResponse resp) {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("aplication/json");
         try{
             String id = req.getParameter("id");
             if (id !=null){
                 int idDel = Integer.parseInt(id);
                 clienteDao.deletar(idDel);
-                resp.getWriter().write("Produto deletado");
+                resp.getWriter().write(msgService.msgJson("Produto deletado"));
             }else{
                 TypeToken tt = new TypeToken<List<Cliente>>() {
                 };
                 String jsonAtual = IOUtils.toString(req.getReader());
                 List<Cliente> listCliente = gson.fromJson(jsonAtual, tt.getType());
                 for (Cliente cliente:listCliente) {
-                    clienteDao.deletar(cliente.getId());
+                    if(cliente.getId()!=0) {
+                        clienteDao.deletar(cliente.getId());
+                    }else{
+                        throw new NumberFormatException();
+                    }
                 }
-                resp.getWriter().write(msgErroService.msgJson("Produtos deletados com sucesso"));
+                resp.getWriter().write(msgService.msgJson("Produtos deletados com sucesso"));
             }
-
+        }catch (NumberFormatException nex){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try {
+                resp.getWriter().write(msgService.msgJson ("Parâmetro incorreto"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } catch (Exception e) {
             try {
-                resp.getWriter().write( e.getMessage()+ " Ocorreu um erro, produto nao pode ser deletado");
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(msgService.msgJson("Ocorreu um erro conexão com BD, produto nao pode ser deletado"));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

@@ -41,21 +41,21 @@ Provide-Capability: osgi.service;objectClass:List<String>="com.adobe.a
  ist<String>="com.adobe.aem.guides.wknd.core.interfaces.FormatacaoNfis
  cal";uses:="com.adobe.aem.guides.wknd.core.interfaces",osgi.service;o
  bjectClass:List<String>="com.adobe.aem.guides.wknd.core.interfaces.Ms
- gErroService";uses:="com.adobe.aem.guides.wknd.core.interfaces",osgi.
- service;objectClass:List<String>="com.adobe.aem.guides.wknd.core.inte
- rfaces.NFiscaisDao";uses:="com.adobe.aem.guides.wknd.core.interfaces"
- ,osgi.service;objectClass:List<String>="com.adobe.aem.guides.wknd.cor
- e.interfaces.NotaFiscalService";uses:="com.adobe.aem.guides.wknd.core
- .interfaces",osgi.service;objectClass:List<String>="com.adobe.aem.gui
- des.wknd.core.interfaces.ProdutoDao";uses:="com.adobe.aem.guides.wknd
- .core.interfaces",osgi.service;objectClass:List<String>="com.adobe.ae
- m.guides.wknd.core.interfaces.ProdutoService";uses:="com.adobe.aem.gu
- ides.wknd.core.interfaces",osgi.service;objectClass:List<String>="jav
- a.lang.Runnable",osgi.service;objectClass:List<String>="javax.servlet
- .Filter";uses:="javax.servlet",osgi.service;objectClass:List<String>=
- "javax.servlet.Servlet";uses:="javax.servlet",osgi.service;objectClas
- s:List<String>="org.apache.sling.api.resource.observation.ResourceCha
- ngeListener";uses:="org.apache.sling.api.resource.observation"
+ gService";uses:="com.adobe.aem.guides.wknd.core.interfaces",osgi.serv
+ ice;objectClass:List<String>="com.adobe.aem.guides.wknd.core.interfac
+ es.NFiscaisDao";uses:="com.adobe.aem.guides.wknd.core.interfaces",osg
+ i.service;objectClass:List<String>="com.adobe.aem.guides.wknd.core.in
+ terfaces.NotaFiscalService";uses:="com.adobe.aem.guides.wknd.core.int
+ erfaces",osgi.service;objectClass:List<String>="com.adobe.aem.guides.
+ wknd.core.interfaces.ProdutoDao";uses:="com.adobe.aem.guides.wknd.cor
+ e.interfaces",osgi.service;objectClass:List<String>="com.adobe.aem.gu
+ ides.wknd.core.interfaces.ProdutoService";uses:="com.adobe.aem.guides
+ .wknd.core.interfaces",osgi.service;objectClass:List<String>="java.la
+ ng.Runnable",osgi.service;objectClass:List<String>="javax.servlet.Fil
+ ter";uses:="javax.servlet",osgi.service;objectClass:List<String>="jav
+ ax.servlet.Servlet";uses:="javax.servlet",osgi.service;objectClass:Li
+ st<String>="org.apache.sling.api.resource.observation.ResourceChangeL
+ istener";uses:="org.apache.sling.api.resource.observation"
 Require-Capability: osgi.service;filter:="(objectClass=com.adobe.aem.g
  uides.wknd.core.interfaces.ClienteDao)";effective:=active,osgi.servic
  e;filter:="(objectClass=com.adobe.aem.guides.wknd.core.interfaces.Cli
@@ -63,18 +63,18 @@ Require-Capability: osgi.service;filter:="(objectClass=com.adobe.aem.g
  m.adobe.aem.guides.wknd.core.interfaces.DatabaseService)";effective:=
  active,osgi.service;filter:="(objectClass=com.adobe.aem.guides.wknd.c
  ore.interfaces.FormatacaoNfiscal)";effective:=active,osgi.service;fil
- ter:="(objectClass=com.adobe.aem.guides.wknd.core.interfaces.MsgErroS
- ervice)";effective:=active,osgi.service;filter:="(objectClass=com.ado
- be.aem.guides.wknd.core.interfaces.NFiscaisDao)";effective:=active,os
- gi.service;filter:="(objectClass=com.adobe.aem.guides.wknd.core.inter
- faces.NotaFiscalService)";effective:=active,osgi.service;filter:="(ob
- jectClass=com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao)";effe
- ctive:=active,osgi.service;filter:="(objectClass=com.adobe.aem.guides
- .wknd.core.interfaces.ProdutoService)";effective:=active,osgi.service
- ;filter:="(objectClass=com.day.commons.datasource.poolservice.DataSou
- rcePool)";effective:=active,osgi.extender;filter:="(&(osgi.extender=o
- sgi.component)(version>=1.4.0)(!(version>=2.0.0)))",osgi.ee;filter:="
- (&(osgi.ee=JavaSE)(version=11))"
+ ter:="(objectClass=com.adobe.aem.guides.wknd.core.interfaces.MsgServi
+ ce)";effective:=active,osgi.service;filter:="(objectClass=com.adobe.a
+ em.guides.wknd.core.interfaces.NFiscaisDao)";effective:=active,osgi.s
+ ervice;filter:="(objectClass=com.adobe.aem.guides.wknd.core.interface
+ s.NotaFiscalService)";effective:=active,osgi.service;filter:="(object
+ Class=com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao)";effectiv
+ e:=active,osgi.service;filter:="(objectClass=com.adobe.aem.guides.wkn
+ d.core.interfaces.ProdutoService)";effective:=active,osgi.service;fil
+ ter:="(objectClass=com.day.commons.datasource.poolservice.DataSourceP
+ ool)";effective:=active,osgi.extender;filter:="(&(osgi.extender=osgi.
+ component)(version>=1.4.0)(!(version>=2.0.0)))",osgi.ee;filter:="(&(o
+ sgi.ee=JavaSE)(version=11))"
 Service-Component: OSGI-INF/com.adobe.aem.guides.wknd.core.DAO.Cliente
  DaoImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.DAO.NFiscalDaoImp
  l.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.DAO.ProdutoDaoImpl.xml,
@@ -85,13 +85,13 @@ Service-Component: OSGI-INF/com.adobe.aem.guides.wknd.core.DAO.Cliente
  viceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.service.Database
  ServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.service.Forma
  tacaoNfiscalImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.service.
- MsgErroServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.servic
- e.NFiscalServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.serv
- ice.ProdutoServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.se
- rvlets.ClienteServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.ser
- vlets.NotaFiscalServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.s
- ervlets.ProdutoServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.se
- rvlets.SimpleServlet.xml
+ MsgServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.service.NF
+ iscalServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.service.
+ ProdutoServiceImpl.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.servle
+ ts.ClienteServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.servlet
+ s.NotaFiscalServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.servl
+ ets.ProdutoServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.servle
+ ts.SimpleServlet.xml
 Sling-Model-Classes: com.adobe.aem.guides.wknd.core.models.Cliente,com
  .adobe.aem.guides.wknd.core.models.HelloWorldModel,com.adobe.aem.guid
  es.wknd.core.models.NotaFiscal,com.adobe.aem.guides.wknd.core.models.

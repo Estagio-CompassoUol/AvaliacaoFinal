@@ -1,10 +1,12 @@
 package com.adobe.aem.guides.wknd.core.servlets;
 
+import com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao;
 import com.adobe.aem.guides.wknd.core.interfaces.ProdutoService;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -25,9 +27,15 @@ public class ProdutoServlet extends SlingAllMethodsServlet {
 
     @Reference
     private ProdutoService produtoService;
+    @Reference
+    private ProdutoDao produtoDao;
+    @Activate
+    public ProdutoServlet(@Reference ProdutoDao produtoDao){
+        this.produtoDao=produtoDao;
+    }
 
     @Override
-    protected void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)  {
+    public void doGet(final SlingHttpServletRequest request, final SlingHttpServletResponse response)  {
         produtoService.doGet(request,response);
     }
 
@@ -37,12 +45,12 @@ public class ProdutoServlet extends SlingAllMethodsServlet {
     }
 
     @Override
-    protected void doDelete(final SlingHttpServletRequest request, final SlingHttpServletResponse response) {
+    public void doDelete(final SlingHttpServletRequest request, final SlingHttpServletResponse response) {
         produtoService.doDelete(request, response);
     }
 
     @Override
-    protected void doPut(final SlingHttpServletRequest request, final SlingHttpServletResponse response){
+    public void doPut(final SlingHttpServletRequest request, final SlingHttpServletResponse response){
         produtoService.doPut(request, response);
     }
 }

@@ -28,9 +28,9 @@ public class NFiscalDaoImpl implements NFiscaisDao {
             String sql="INSERT INTO nfiscais (NUMERO,IDPRODUTO,IDCLIENTE,VALOR) VALUES (?,?,?,?)";
             PreparedStatement pstm = connection.prepareStatement(sql);
             pstm.setLong(1, notaFiscal.getNumero());
-            pstm.setInt(2, notaFiscal.getListaProdutos().get(0).getId());
+            pstm.setInt(2, notaFiscal.getIdProduto());
             pstm.setInt(3,notaFiscal.getIdCliente());
-            pstm.setDouble(4,notaFiscal.getListaProdutos().get(0).getPreco());
+            pstm.setDouble(4,notaFiscal.getValor());
             pstm.execute();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage()+ " Erro ao salvar Nota Fiscal");

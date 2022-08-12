@@ -3,7 +3,7 @@
   <service>
     <provide interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoService"/>
   </service>
-  <reference name="msg" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgErroService" field="msg"/>
+  <reference name="msg" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgService" field="msg"/>
   <reference name="produtoDao" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao" field="produtoDao"/>
   <implementation class="com.adobe.aem.guides.wknd.core.service.ProdutoServiceImpl"/>
 </scr:component>

@@ -4,6 +4,7 @@
     <provide interface="com.adobe.aem.guides.wknd.core.interfaces.NotaFiscalService"/>
   </service>
   <reference name="formatacaoNfiscal" interface="com.adobe.aem.guides.wknd.core.interfaces.FormatacaoNfiscal" field="formatacaoNfiscal"/>
+  <reference name="msgService" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgService" field="msgService"/>
   <reference name="nFiscaisDao" interface="com.adobe.aem.guides.wknd.core.interfaces.NFiscaisDao" field="nFiscaisDao"/>
   <implementation class="com.adobe.aem.guides.wknd.core.service.NFiscalServiceImpl"/>
 </scr:component>
