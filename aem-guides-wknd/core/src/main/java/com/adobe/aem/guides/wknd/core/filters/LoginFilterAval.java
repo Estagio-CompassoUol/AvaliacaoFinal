@@ -60,7 +60,9 @@ public class LoginFilterAval implements Filter {
         String path =slingRequest.getRequestURI();
         HttpSession hs = slingRequest.getSession();
         if (hs.getAttribute("usuario")==null & hs.getAttribute("usuarioAdm")==null) {
-            if (!path.equals("/bin/lojasgbr/login")) {
+            boolean pagLog =(path.equals("/bin/lojasgbr/login"));
+            boolean pagLog1 =(path.equals("/bin/lojasgbr/produtos"));
+            if ( pagLog==false & pagLog1==false) {
                 response.setCharacterEncoding("UTF-8");
                 response.setContentType("application/json");
                 response.getWriter().write(msgService.msgJson("Usuário não logado"));
@@ -68,7 +70,6 @@ public class LoginFilterAval implements Filter {
             }
         }
             filterChain.doFilter(request, response);
-
     }
 
     @Override

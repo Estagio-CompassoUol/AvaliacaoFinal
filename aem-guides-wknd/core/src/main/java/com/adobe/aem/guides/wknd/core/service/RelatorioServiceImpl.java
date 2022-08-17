@@ -36,45 +36,28 @@ public class RelatorioServiceImpl implements RelatorioService {
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/html");
         List<NotaFiscal> listaNFCProdutos=new ArrayList<>();
-        if(sessao.getAttribute("usuario")!=null) {
-            Cliente usuario = (Cliente) sessao.getAttribute("usuario");
-            List<NotaFiscal> listaNF = new ArrayList<>();
-            listaNF.addAll(nFiscaisDao.listaPorIdCliente(usuario.getId()));
-            if (usuario!= null & listaNF.size()>0){
-                for (NotaFiscal nf:listaNF) {
-                    List<Produto> listaProd = new ArrayList<>();
-                    int idProd=nf.getIdProduto();
-                    Produto produto = produtoDao.getFiltroId(idProd);
-                    listaProd.add(new Produto(produto.getId(), produto.getNome(), produto.getPreco()));
-                    listaNFCProdutos.add(new NotaFiscal(nf.getNumero(),listaProd));
-                }
-                try {
-                    retornoHTML(req, resp, listaNFCProdutos);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            } else if (idCliente!=null) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write(msgService.msgJson("Precisa esta logado como Administrador para acessar outro usuário"));
-            } else {
-                try {
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write(msgService.msgJson("Parametro inválido ou Nenhuma compra localizada para esse usuário "));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }else if(sessao.getAttribute("usuarioAdm")!=null){
-            if (idCliente != null) {
-                int id = Integer.parseInt(idCliente);
-                List<NotaFiscal> listaNF = nFiscaisDao.listaPorIdCliente(id);
-                if (listaNF.get(0).getNumero()!=0) {
+        try {
+            if (sessao.getAttribute("usuario") != null) {
+                Cliente usuario = (Cliente) sessao.getAttribute("usuario");
+                List<NotaFiscal> listaNF = new ArrayList<>();
+                listaNF.addAll(nFiscaisDao.listaPorIdCliente(usuario.getId()));
+                if (usuario != null & listaNF.size() > 0 & idCliente == null) {
+                    for (NotaFiscal nf : listaNF) {
+                        List<Produto> listaProd = new ArrayList<>();
+                        int idProd = nf.getIdProduto();
+                        Produto produto = produtoDao.getFiltroId(idProd);
+                        listaProd.add(new Produto(produto.getId(), produto.getNome(), produto.getPreco()));
+                        listaNFCProdutos.add(new NotaFiscal(nf.getNumero(), listaProd));
+                    }
                     try {
-                        retornoHTML(req, resp, listaNF);
+                        retornoHTML(req, resp, listaNFCProdutos);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                }else{
+                } else if (idCliente != null) {
+                    resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    resp.getWriter().write(msgService.msgJson("Precisa esta logado como Administrador para acessar outro usuário"));
+                } else {
                     try {
                         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         resp.getWriter().write(msgService.msgJson("Parametro inválido ou Nenhuma compra localizada para esse usuário "));
@@ -82,13 +65,39 @@ public class RelatorioServiceImpl implements RelatorioService {
                         throw new RuntimeException(e);
                     }
                 }
-            }else{
-                try {
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write(msgService.msgJson("Parametro inválido"));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            } else if (sessao.getAttribute("usuarioAdm") != null) {
+                if (idCliente != null) {
+                    int id = Integer.parseInt(idCliente);
+                    List<NotaFiscal> listaNF = nFiscaisDao.listaPorIdCliente(id);
+                    if (listaNF.get(0).getNumero() != 0) {
+                        try {
+                            retornoHTML(req, resp, listaNF);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        try {
+                            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            resp.getWriter().write(msgService.msgJson("Parametro inválido ou Nenhuma compra localizada para esse usuário "));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                } else {
+                    try {
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        resp.getWriter().write(msgService.msgJson("Parametro inválido"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+            }
+        }catch (Exception e){
+            try {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(msgService.msgDuploJson(e.getMessage(),"Erro ao buscar relatório"));
+            } catch (IOException ie) {
+                throw new RuntimeException(e);
             }
         }
     }

@@ -76,7 +76,7 @@ public class ProdutoServiceImpl implements ProdutoService {
             String idReq = req.getParameter("id");
             String palavraChave = req.getParameter("pk");
             String categor = req.getParameter("categ");
-            String orderByPreco = req.getParameter("orderPreco");
+            String orderByPreco = req.getParameter("order");
 
             if (idReq != null){
                 int idGet = Integer.parseInt(idReq);
