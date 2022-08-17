@@ -16,14 +16,13 @@ import java.util.List;
 public class ProdutoDaoImpl implements ProdutoDao {
     @Reference
     private DatabaseService databaseService;
-
     List<Produto> listaProdutos = new ArrayList<>();
+
     @Override
     public List<Produto> getProdutos() {
         listaProdutos.clear();
         try(Connection connection= databaseService.getConnections()){
             String sql="SELECT ID,NOME,CATEGORIA,PRECO FROM produtos";
-
            PreparedStatement pstm = connection.prepareStatement(sql);
                 pstm.execute();
                ResultSet result = pstm.getResultSet();
@@ -85,7 +84,7 @@ public class ProdutoDaoImpl implements ProdutoDao {
     @Override
     public Produto getFiltroId(int idGet) {
         Produto produto = null;
-        try(Connection connection= databaseService.getConnections()){
+        try(Connection connection = databaseService.getConnections()){
             String sql="SELECT ID, NOME,CATEGORIA,PRECO FROM produtos WHERE ID=?";
             PreparedStatement pstm = connection.prepareStatement(sql);
             pstm.setInt(1,idGet);

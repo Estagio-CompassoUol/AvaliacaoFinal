@@ -173,7 +173,6 @@ Import-Package: javax.annotation;version=0.0.0,*
             <artifactId>org.apache.sling.models.api</artifactId>
         </dependency>
 
-
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

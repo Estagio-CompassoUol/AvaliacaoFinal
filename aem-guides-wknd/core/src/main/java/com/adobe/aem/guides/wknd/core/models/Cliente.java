@@ -20,7 +20,10 @@ public class Cliente {
         this.id = id;
         this.nome = nome;
     }
-
+    public Cliente(String email, String senha) {
+        this.email = email;
+        this.senha=senha;
+    }
     public Cliente(String nome, String email, String senha) {
         this.nome = nome;
         this.email = email;

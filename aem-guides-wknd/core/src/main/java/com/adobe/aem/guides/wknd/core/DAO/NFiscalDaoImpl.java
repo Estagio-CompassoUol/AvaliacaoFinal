@@ -90,4 +90,29 @@ public class NFiscalDaoImpl implements NFiscaisDao {
         }
     }
 
+    @Override
+    public List<NotaFiscal> listaPorIdCliente(int idCliente) {
+        List<Produto> listProd = new ArrayList<>();
+        List<NotaFiscal> listNF = new ArrayList<>();
+        long numeroR =0;
+
+        try(Connection connection= databaseService.getConnections()){
+            String sql="SELECT NUMERO,IDPRODUTO,IDCLIENTE,VALOR FROM nfiscais WHERE IDCLIENTE = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setLong(1,idCliente);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            while (result.next()){
+                numeroR = result.getLong(1);
+                int idProd=result.getInt(2);
+                idCliente=result.getInt(3);
+                double valor = result.getDouble(4);
+                listNF.add(new NotaFiscal(numeroR,idProd,idCliente,valor));
+            }
+            return listNF;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage()+ " Erro ao listar Produtos");
+        }
+    }
+
 }

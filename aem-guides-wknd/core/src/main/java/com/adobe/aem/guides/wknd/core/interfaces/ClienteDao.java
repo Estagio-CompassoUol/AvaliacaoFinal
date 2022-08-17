@@ -14,5 +14,9 @@ public interface ClienteDao {
 
     void update(Cliente cliente);
 
+    Cliente login(String email, String senha);
+
     public boolean existe(Cliente cliente);
+
+    public boolean admin(Cliente cliente);
 }

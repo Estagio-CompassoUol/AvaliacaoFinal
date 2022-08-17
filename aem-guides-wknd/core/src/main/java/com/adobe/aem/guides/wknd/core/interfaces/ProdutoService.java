@@ -1,6 +1,5 @@
 package com.adobe.aem.guides.wknd.core.interfaces;
 
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 

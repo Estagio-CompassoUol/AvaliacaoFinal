@@ -1,6 +1,6 @@
 package com.adobe.aem.guides.wknd.core.servlets;
 
-import com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao;
+
 import com.adobe.aem.guides.wknd.core.interfaces.ProdutoService;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -27,11 +27,9 @@ public class ProdutoServlet extends SlingAllMethodsServlet {
 
     @Reference
     private ProdutoService produtoService;
-    @Reference
-    private ProdutoDao produtoDao;
     @Activate
-    public ProdutoServlet(@Reference ProdutoDao produtoDao){
-        this.produtoDao=produtoDao;
+    public ProdutoServlet(@Reference ProdutoService produtoService) {
+        this.produtoService=produtoService;
     }
 
     @Override

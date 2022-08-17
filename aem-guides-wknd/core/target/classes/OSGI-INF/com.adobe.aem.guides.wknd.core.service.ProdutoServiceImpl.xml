@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.adobe.aem.guides.wknd.core.service.ProdutoServiceImpl" immediate="true">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.4.0" name="com.adobe.aem.guides.wknd.core.service.ProdutoServiceImpl" immediate="true" init="1">
   <service>
     <provide interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoService"/>
   </service>
+  <reference name="$000" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao" parameter="0"/>
   <reference name="msg" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgService" field="msg"/>
   <reference name="produtoDao" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao" field="produtoDao"/>
   <implementation class="com.adobe.aem.guides.wknd.core.service.ProdutoServiceImpl"/>

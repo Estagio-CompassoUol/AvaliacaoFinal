@@ -9,4 +9,5 @@ public interface NFiscaisDao {
     void deletarNF(long numero);
     List<NotaFiscal> listaNF(long numero);
     boolean existe(long numero);
+    public List<NotaFiscal> listaPorIdCliente(int idCliente);
 }

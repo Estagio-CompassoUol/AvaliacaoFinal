@@ -9,8 +9,7 @@ PUT</property>
   <service>
     <provide interface="javax.servlet.Servlet"/>
   </service>
-  <reference name="$000" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao" parameter="0"/>
-  <reference name="produtoDao" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoDao" field="produtoDao"/>
+  <reference name="$000" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoService" parameter="0"/>
   <reference name="produtoService" interface="com.adobe.aem.guides.wknd.core.interfaces.ProdutoService" field="produtoService"/>
   <implementation class="com.adobe.aem.guides.wknd.core.servlets.ProdutoServlet"/>
 </scr:component>

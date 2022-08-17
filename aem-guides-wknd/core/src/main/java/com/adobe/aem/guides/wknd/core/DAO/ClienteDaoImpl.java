@@ -3,6 +3,8 @@ package com.adobe.aem.guides.wknd.core.DAO;
 import com.adobe.aem.guides.wknd.core.interfaces.ClienteDao;
 import com.adobe.aem.guides.wknd.core.models.Cliente;
 import com.adobe.aem.guides.wknd.core.interfaces.DatabaseService;
+import com.adobe.aem.guides.wknd.core.models.NotaFiscal;
+import com.adobe.aem.guides.wknd.core.models.Produto;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -86,7 +88,6 @@ public class ClienteDaoImpl implements ClienteDao {
             throw new RuntimeException(e.getMessage() + "Não foi possível deletar produto");
         }
     }
-
     @Override
     public void update(Cliente cliente) {
         try (Connection connection = databaseService.getConnections()) {
@@ -95,14 +96,31 @@ public class ClienteDaoImpl implements ClienteDao {
             pstm.setString(1, cliente.getNome());
             pstm.setString(2, cliente.getEmail());
             pstm.setString(3, cliente.getSenha());
+            pstm.setInt(4, cliente.getId());
             pstm.execute();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage() + "Não foi possível atualizar produto");
         }
     }
-
+    public Cliente login(String email, String senha){
+        Cliente cliente = null;
+        try (Connection connection = databaseService.getConnections()) {
+            String sql = "SELECT ID,NOME,EMAIL, SENHA FROM clientes WHERE EMAIL = ? AND SENHA = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1, email);
+            pstm.setString(2,senha);
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            while (result.next()) {
+                cliente = new Cliente(result.getInt("ID"), result.getString("NOME"), result.getString("EMAIL"), result.getString("SENHA"));
+            }
+            return cliente;
+        } catch (Exception e) {
+            new RuntimeException(e.getMessage() + " " + "erro ao localizar cliente no banco de dados");
+        }
+        return null;
+    }
     public boolean existe(Cliente cliente) {
-
         try (Connection connection = databaseService.getConnections()) {
             String sql = "SELECT ID,NOME,EMAIL FROM clientes WHERE NOME = ? AND EMAIL = ?";
             PreparedStatement pstm = connection.prepareStatement(sql);
@@ -118,4 +136,22 @@ public class ClienteDaoImpl implements ClienteDao {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean admin(Cliente cliente) {
+        try (Connection connection = databaseService.getConnections()) {
+            String sql = "SELECT ID,NOME,EMAIL FROM administradores WHERE EMAIL = ? AND SENHA = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1, cliente.getEmail());
+            pstm.setString(2, cliente.getSenha());
+            pstm.execute();
+            ResultSet result = pstm.getResultSet();
+            if (result.next()) {
+                return true;
+            }else
+                return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

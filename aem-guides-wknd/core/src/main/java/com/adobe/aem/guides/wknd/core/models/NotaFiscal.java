@@ -14,18 +14,20 @@ public class NotaFiscal {
     private int idProduto;
     @Expose
     private int idCliente;
-
     @Expose
     private double valor;
     @Expose
     private List<Produto> listaProdutos;
 
+    public NotaFiscal(long numero, List<Produto> listaProdutos) {
+        this.numero = numero;
+        this.listaProdutos = listaProdutos;
+    }
     public NotaFiscal(long numero,int idCliente, List<Produto> listaProdutos  ) {
         this.numero = numero;
         this.listaProdutos = listaProdutos;
         this.idCliente = idCliente;
     }
-
     public NotaFiscal(long numero, int idProduto, int idCliente, double valor) {
         this.numero = numero;
         this.idProduto = idProduto;

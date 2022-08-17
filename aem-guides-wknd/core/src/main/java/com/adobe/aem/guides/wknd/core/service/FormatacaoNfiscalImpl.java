@@ -45,7 +45,7 @@ public class FormatacaoNfiscalImpl implements FormatacaoNfiscal{
         long numNF = listNF.get(0).getNumero();
         int idClient= listNF.get(0).getIdCliente();
 
-        listaNF.add(new NotaFiscalFormat(numNF,idClient,valor,qtn,listProdForm));
+        listaNF.add(new NotaFiscalFormat(numNF,idClient,valor,listProdForm));
         return listaNF;
     }
 

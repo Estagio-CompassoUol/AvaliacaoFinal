@@ -15,15 +15,13 @@ public class NotaFiscalFormat {
     @Expose
     private double valor;
 
-    private int qtn;
 
     private List<ProdutoNFFormat> listaProdutosFormat;
 
-    public NotaFiscalFormat(long numero, int idCliente, double valor, int qtn, List<ProdutoNFFormat> listaProdutosFormat) {
+    public NotaFiscalFormat(long numero, int idCliente, double valor, List<ProdutoNFFormat> listaProdutosFormat) {
         this.numero = numero;
         this.idCliente = idCliente;
         this.valor = valor;
-        this.qtn = qtn;
         this.listaProdutosFormat = listaProdutosFormat;
     }
 
@@ -38,10 +36,6 @@ public class NotaFiscalFormat {
 
     public double getValor() {
         return valor;
-    }
-
-    public int getQtn() {
-        return qtn;
     }
 
     public List<ProdutoNFFormat> getListaProdutosFormat() {

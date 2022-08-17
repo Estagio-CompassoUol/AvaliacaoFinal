@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.adobe.aem.guides.wknd.core.service.LoginServiceImpl" immediate="true">
+  <service>
+    <provide interface="com.adobe.aem.guides.wknd.core.interfaces.LoginService"/>
+  </service>
+  <reference name="clienteDao" interface="com.adobe.aem.guides.wknd.core.interfaces.ClienteDao" field="clienteDao"/>
+  <reference name="msgService" interface="com.adobe.aem.guides.wknd.core.interfaces.MsgService" field="msgService"/>
+  <implementation class="com.adobe.aem.guides.wknd.core.service.LoginServiceImpl"/>
+</scr:component>
