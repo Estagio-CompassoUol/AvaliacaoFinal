@@ -6,11 +6,11 @@
 
 #### Há dois tipos de conta para logar, usuário e Administrador(sem realizar o login ele somente tem acesso a exibição de produtos):
 
-#### Usuário: Possui somente acesso a dados e serviços pertinentes a regra de autorização, não sendo possivel editar, apagar e atualizar outras informações que não pertencem a ele, o relarório de produtos usua seu id de login e retorna um HTML com os dados solicitados.
+#### Usuário: Possui somente acesso a dados e serviços pertinentes a regra de autorização, não sendo possivel editar, apagar e atualizar outras informações que não pertencem a ele, o relarório de produtos usa seu id de login e retorna um HTML com os dados solicitados.
 
 #### Administrador: Possui acesso total do programa exceto efetuar uma compra, que precisa estar logado como Usuário; tem permissão para cadastrar, atualizar, excluir e buscar qualquer informação do programa, incluindo relatório de compras por usuário, retornado em HTML.
 
-#### Obs.: O CRUD pode ser realizado por um json de dados ou uma lista de dados em Json na mesma requisição.
+#### Obs.: O CRUD pode ser realizado por um json de dados ou uma lista de dados em Json na mesma requisição. Há validação de campos, parâmetros e verificação de existência de um dado evitando duplicidade de algumas informações.  
 ##
 
 #### Esse projeto contou tais conhecimento:
