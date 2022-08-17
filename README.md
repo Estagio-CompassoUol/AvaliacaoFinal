@@ -2,7 +2,7 @@
 
 ## Criação de Api Rest com AEM
 
-### Projeto conta co determinado funções: 
+### Projeto conta com determinado fluxo: 
 
 #### Há dois tipos de conta para logar, usuário e Administrador(sem realizar o login ele somente tem acesso a exibição de produtos):
 
@@ -12,6 +12,7 @@
 
 #### Obs.: O CRUD pode ser realizado por um json de dados ou uma lista de dados em Json na mesma requisição.
 ##
+
 #### Esse projeto contou tais conhecimento:
 
 #### Servlet (java),
@@ -22,6 +23,8 @@
 #### JDBC
 #### POO,
 #### Boa Lógica de programação...
+
+#
 
 ### Aplicando meus conhecimentos neste projeto me propiciou um grande crescimento profissional e pessoal, 
 ### Além de adquirir experiência em trabalhar em equipe com Metodologia àgeis e Github.    
