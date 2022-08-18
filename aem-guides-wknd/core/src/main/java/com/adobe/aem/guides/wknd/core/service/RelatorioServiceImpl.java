@@ -69,9 +69,16 @@ public class RelatorioServiceImpl implements RelatorioService {
                 if (idCliente != null) {
                     int id = Integer.parseInt(idCliente);
                     List<NotaFiscal> listaNF = nFiscaisDao.listaPorIdCliente(id);
-                    if (listaNF.get(0).getNumero() != 0) {
+                    if (listaNF.size() > 0) {
+                        for (NotaFiscal nf : listaNF) {
+                            List<Produto> listaProd = new ArrayList<>();
+                            int idProd = nf.getIdProduto();
+                            Produto produto = produtoDao.getFiltroId(idProd);
+                            listaProd.add(new Produto(produto.getId(), produto.getNome(), produto.getPreco()));
+                            listaNFCProdutos.add(new NotaFiscal(nf.getNumero(), listaProd));
+                        }
                         try {
-                            retornoHTML(req, resp, listaNF);
+                            retornoHTML(req, resp, listaNFCProdutos);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
